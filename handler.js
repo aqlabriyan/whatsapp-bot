@@ -331,6 +331,31 @@ Untuk mematikan fitur ini, ketik
   }
 }
 
+async onCall(json) {
+    if (!setting.anticall) return
+    let jid = json[2][0][1]['from']
+    let isOffer = json[2][0][2][0][0] == 'offer'
+    let users = global.db.data.users
+    let user = users[jid] || {}
+    if (user.whitelist) return
+    if (jid && isOffer) {
+      const tag = this.generateMessageTag()
+      const nodePayload = ['action', 'call', ['call', {
+        'from': this.user.jid,
+        'to': `${jid.split`@`[0]}@s.whatsapp.net`,
+        'id': tag
+      }, [['reject', {
+        'call-id': json[2][0][2][0][1]['call-id'],
+        'call-creator': `${jid.split`@`[0]}@s.whatsapp.net`,
+        'count': '0'
+      }, null]]]]
+      this.sendJSON(nodePayload, tag)
+      m.reply('Dimohon untuk tidak menelpon bot!')
+    }
+  }
+}
+
+
 global.dfail = (type, m, conn) => {
   let msg = {
     rowner: 'Perintah ini hanya dapat digunakan oleh _*OWWNER!1!1!*_',
